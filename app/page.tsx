@@ -1,65 +1,147 @@
-import Image from "next/image";
+'use client'
+
+import { Canvas } from '@react-three/fiber'
+import { useGLTF, OrbitControls, Environment } from '@react-three/drei'
+import { useEffect, useState } from 'react'
+
+function Watch({ strapColor, caseFinish }: { strapColor: string; caseFinish: string }) {
+  const { scene } = useGLTF('/models/watch.glb')
+
+  // This logs ALL the parts and materials
+  useEffect(() => {
+    scene.traverse((child) => {
+      if (child.isMesh) {
+
+        // WATCH FACE & DETAILS → White/Silver (elegant)
+        if (child.material.name === 'Green') {
+          child.material = child.material.clone()
+          child.material.color.set(caseFinish) // Light silver/white
+          child.material.metalness = caseFinish !== '#2C2C2C' ? 0.95 : 0.8
+          child.material.roughness = caseFinish !== '#2C2C2C' ? 0.1 : 0.3
+        }
+
+        // HOUR MARKERS & HANDS → Polished Silver
+        if (child.material.name === 'MetalGrey') {
+          child.material = child.material.clone()
+          child.material.color.set('#C0C0C0') // Silver
+          child.material.metalness = 0.9
+          child.material.roughness = 0.1 // Shiny!
+        }
+
+        // WATCH STRAP → Brown Leather
+        if (child.material.name === 'DarkPins.001') {
+          child.material = child.material.clone()
+          child.material.color.set(strapColor) // Brown leather
+          child.material.metalness = 0.0 // Not metal
+          child.material.roughness = 0.8 // Matte leather texture
+        }
+
+        // BUTTONS → Dark accents
+        if (child.material.name === 'Black') {
+          child.material = child.material.clone()
+          child.material.color.set('#1a1a1a') // Dark grey (not pure black)
+          child.material.metalness = 0.7
+          child.material.roughness = 0.3
+        }
+      }
+    })
+  }, [scene, strapColor, caseFinish])
+  return <primitive object={scene} scale={5} />
+}
 
 export default function Home() {
+  const [strapColor, setStrapColor] = useState('#1E3A5F')
+  const [caseFinish, setCaseFinish] = useState('#C0C0C0')
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="w-screen h-screen">
+      <Canvas camera={{ position: [3, 2, 6], fov: 50 }}>
+        {/* Soft ambient base */}
+        <ambientLight intensity={0.3} />
+
+        {/* Main key light - top right */}
+        <directionalLight
+          position={[5, 5, 5]}
+          intensity={1}
+          castShadow
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        {/* Fill light - soften shadows */}
+        <directionalLight
+          position={[-5, 2, -5]}
+          intensity={0.5}
+        />
+
+        {/* Clean studio environment */}
+        <Environment preset="studio" />
+
+        <Watch strapColor={strapColor} caseFinish={caseFinish} />
+        <OrbitControls enablePan={false} />
+      </Canvas>
+
+      <div className=" flex w-4/5 justify-between mx-auto absolute bottom-8 left-1/2 -translate-x-1/2">
+        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+          <h3 className="text-sm font-semibold mb-3 text-gray-700">
+            Strap Color
+          </h3>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setStrapColor('#8B4513')}
+              className="w-12 h-12 rounded-full border-2 border-gray-300 hover:scale-110 transition"
+              style={{ backgroundColor: '#8B4513' }}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <button
+              onClick={() => setStrapColor('#2C2416')}
+              className="w-12 h-12 rounded-full border-2 border-gray-300 hover:scale-110 transition"
+              style={{ backgroundColor: '#2C2416' }}
+            />
+            <button
+              onClick={() => setStrapColor('#D2B48C')}
+              className="w-12 h-12 rounded-full border-2 border-gray-300 hover:scale-110 transition"
+              style={{ backgroundColor: '#D2B48C' }}
+            />
+            <button
+              onClick={() => setStrapColor('#1E3A5F')}
+              className="w-12 h-12 rounded-full border-2 border-gray-300 hover:scale-110 transition"
+              style={{ backgroundColor: '#1E3A5F' }}
+            />
+          </div>
         </div>
-      </main>
+        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+          <h3 className="text-sm font-semibold mb-3 text-gray-700">
+            Case Finish
+          </h3>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setCaseFinish('#FFD700')}
+              className="w-fit px-1 h-12 rounded-sm border-2 border-gray-300 hover:scale-110 transition"
+              style={{ backgroundColor: '#FFD700' }}>
+              Gold
+            </button>
+            <button
+              onClick={() => setCaseFinish('#C0C0C0')}
+              className="w-12 h-12 rounded-full border-2 border-gray-300 hover:scale-110 transition"
+              style={{ backgroundColor: '#C0C0C0' }}>
+              Silver
+            </button>
+            <button
+              onClick={() => setCaseFinish('#B76E79')}
+              className="w-12 h-12 rounded-full border-2 border-gray-300 hover:scale-110 transition"
+              style={{ backgroundColor: '#B76E79' }}>
+              Rose Gold
+            </button>
+
+            <button
+              onClick={() => {
+                setCaseFinish('#2C2C2C')
+              }}
+              className="w-12 h-12 rounded-full border-2 border-gray-300 hover:scale-110 transition"
+              style={{ backgroundColor: '#2C2C2C' }}>
+              Black
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
