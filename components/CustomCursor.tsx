@@ -1,62 +1,80 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { gsap } from 'gsap'
+import { useEffect, useRef, useCallback } from 'react'
 
 export default function CustomCursor() {
-  const cursorRef = useRef<HTMLDivElement>(null)
-  const followerRef = useRef<HTMLDivElement>(null)
+  const cursorDotRef = useRef<HTMLDivElement>(null)
+  const cursorRingRef = useRef<HTMLDivElement>(null)
+  const requestRef = useRef<number>()
+  const positionRef = useRef({ x: 0, y: 0 })
+  const targetRef = useRef({ x: 0, y: 0 })
+  const isHoveringRef = useRef(false)
+
+  const animate = useCallback(() => {
+    if (!cursorDotRef.current || !cursorRingRef.current) return
+
+    // Smooth lerp animation
+    positionRef.current.x += (targetRef.current.x - positionRef.current.x) * 0.15
+    positionRef.current.y += (targetRef.current.y - positionRef.current.y) * 0.15
+
+    const { x, y } = positionRef.current
+
+    // Use transform3d for GPU acceleration
+    cursorDotRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`
+    cursorRingRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${isHoveringRef.current ? 1.5 : 1})`
+
+    requestRef.current = requestAnimationFrame(animate)
+  }, [])
 
   useEffect(() => {
-    const cursor = cursorRef.current
-    const follower = followerRef.current
-
-    const moveCursor = (e: MouseEvent) => {
-      gsap.to(cursor, {
-        x: e.clientX,
-        y: e.clientY,
-        duration: 0,
-      })
-      gsap.to(follower, {
-        x: e.clientX,
-        y: e.clientY,
-        duration: 0.15,
-        ease: 'power2.out'
-      })
+    const handleMouseMove = (e: MouseEvent) => {
+      targetRef.current = { x: e.clientX, y: e.clientY }
     }
 
-    const growCursor = () => {
-      gsap.to(follower, { scale: 3, opacity: 0.4, duration: 0.3 })
+    const handleMouseEnter = () => {
+      isHoveringRef.current = true
     }
 
-    const shrinkCursor = () => {
-      gsap.to(follower, { scale: 1, opacity: 1, duration: 0.3 })
+    const handleMouseLeave = () => {
+      isHoveringRef.current = false
     }
 
-    window.addEventListener('mousemove', moveCursor)
-    
-    // Grow on hover of interactive elements
-    document.querySelectorAll('button, a, [data-cursor]').forEach(el => {
-      el.addEventListener('mouseenter', growCursor)
-      el.addEventListener('mouseleave', shrinkCursor)
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+
+    // Add hover listeners to interactive elements
+    const interactiveElements = document.querySelectorAll('button, a, [role="button"]')
+    interactiveElements.forEach(el => {
+      el.addEventListener('mouseenter', handleMouseEnter)
+      el.addEventListener('mouseleave', handleMouseLeave)
     })
 
+    requestRef.current = requestAnimationFrame(animate)
+
     return () => {
-      window.removeEventListener('mousemove', moveCursor)
+      window.removeEventListener('mousemove', handleMouseMove)
+      interactiveElements.forEach(el => {
+        el.removeEventListener('mouseenter', handleMouseEnter)
+        el.removeEventListener('mouseleave', handleMouseLeave)
+      })
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current)
+      }
     }
-  }, [])
+  }, [animate])
 
   return (
     <>
-      {/* Small dot */}
+      {/* Dot */}
       <div
-        ref={cursorRef}
-        className="fixed top-0 left-0 w-1.5 h-1.5 bg-white rounded-full pointer-events-none z-[9999] -translate-x-1/2 -translate-y-1/2 mix-blend-difference"
+        ref={cursorDotRef}
+        className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[9999] -translate-x-1/2 -translate-y-1/2 mix-blend-difference"
+        style={{ willChange: 'transform' }}
       />
-      {/* Larger follower */}
+      {/* Ring */}
       <div
-        ref={followerRef}
-        className="fixed top-0 left-0 w-8 h-8 border border-white/40 rounded-full pointer-events-none z-[9998] -translate-x-1/2 -translate-y-1/2 mix-blend-difference"
+        ref={cursorRingRef}
+        className="fixed top-0 left-0 w-10 h-10 border border-white/30 rounded-full pointer-events-none z-[9998] -translate-x-1/2 -translate-y-1/2 mix-blend-difference transition-transform duration-200"
+        style={{ willChange: 'transform' }}
       />
     </>
   )
