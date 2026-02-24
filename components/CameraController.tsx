@@ -1,6 +1,7 @@
 import { useThree } from '@react-three/fiber'
 import gsap from 'gsap'
 import { useEffect } from 'react'
+import { OrbitControls } from 'three-stdlib'
 
 
 export default function CameraController({ target }: { target: [number, number, number] | null }) {
@@ -18,7 +19,7 @@ export default function CameraController({ target }: { target: [number, number, 
         onUpdate: () => {
           // Update OrbitControls target during animation
           if (controls) {
-            controls.update()
+            (controls as OrbitControls).update()
           }
         }
       })

@@ -111,7 +111,7 @@ export default function Collection() {
           >
             {/* R3F Canvas Area */}
             <div className="w-full md:w-1/2 h-[50vh] md:h-[70vh] relative">
-              <Canvas camera={{ position: watch.position, fov: watch.fov }} dpr={[1, 2]}>
+              <Canvas camera={{ position: watch.position as [number, number, number], fov: watch.fov }} dpr={[1, 2]}>
                 <Environment preset="studio" />
                 <Suspense fallback={null}>
                   <CollectionItem model={watch.model} />
