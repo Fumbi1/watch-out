@@ -5,7 +5,7 @@ import { useEffect, useRef, useCallback } from 'react'
 export default function CustomCursor() {
   const cursorDotRef = useRef<HTMLDivElement>(null)
   const cursorRingRef = useRef<HTMLDivElement>(null)
-  const requestRef = useRef<number>()
+  const requestRef = useRef<number>(null)
   const positionRef = useRef({ x: 0, y: 0 })
   const targetRef = useRef({ x: 0, y: 0 })
   const isHoveringRef = useRef(false)
