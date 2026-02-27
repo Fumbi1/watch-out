@@ -98,7 +98,7 @@ export default function Collection() {
 
   return (
     <section ref={containerRef} className="relative bg-[#050505] transition-colors duration-700 ease-out">
-      <div className="py-24 px-6 md:px-12 max-w-[1600px] mx-auto">
+      <div className="py-24 px-6 md:px-12 max-w-400 mx-auto">
         <h2 className="text-6xl md:text-8xl font-serif text-white mb-32 border-b border-white/10 pb-8">
           The Collection
         </h2>
@@ -111,7 +111,7 @@ export default function Collection() {
           >
             {/* R3F Canvas Area */}
             <div className="w-full md:w-1/2 h-[50vh] md:h-[70vh] relative">
-              <Canvas camera={{ position: watch.position as [number, number, number], fov: watch.fov }} dpr={[1, 2]}>
+              <Canvas frameloop="demand" camera={{ position: watch.position as [number, number, number], fov: watch.fov }} dpr={[1, 2]}>
                 <Environment preset="studio" />
                 <Suspense fallback={null}>
                   <CollectionItem model={watch.model} />

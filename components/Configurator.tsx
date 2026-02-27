@@ -93,7 +93,7 @@ export default function Configurator() {
     }
 
     return (
-        <div className="relative w-screen h-screen bg-gradient-to-br from-[#0a0a0a] via-[#050505] to-[#000000] overflow-hidden text-white selection:bg-white/20">
+        <div className="relative w-screen h-screen bg-linear-to-br from-[#0a0a0a] via-[#050505] to-[#000000] overflow-hidden text-white selection:bg-white/20">
 
             {/* Cinematic Background Layers */}
             <div className="absolute inset-0 z-0 pointer-events-none">
@@ -123,6 +123,7 @@ export default function Configurator() {
 
             {/* 3D Canvas */}
             <Canvas
+                frameloop='demand'
                 camera={{ position: [0, 0, 15], fov: 50 }}
                 className="absolute inset-0 z-10"
                 shadows="soft"
@@ -158,7 +159,7 @@ export default function Configurator() {
                 <Watch strapColor={strapColor} caseFinish={caseFinish} />
 
                 <ContactShadows
-                position={[0, -5, 0]}
+                    position={[0, -5, 0]}
                     resolution={128}
                     frames={1}
                     scale={20}
@@ -263,7 +264,7 @@ export default function Configurator() {
                                 ))}
                             </div>
 
-                            <div className="hidden md:block w-px h-12 bg-gradient-to-b from-transparent via-white/15 to-transparent" />
+                            <div className="hidden md:block w-px h-12 bg-linear-to-b from-transparent via-white/15 to-transparent" />
 
                             <div className="flex-1 flex items-center gap-5 overflow-x-auto custom-scrollbar pb-2 md:pb-0 px-2">
 
@@ -271,7 +272,7 @@ export default function Configurator() {
                                     <button
                                         key={opt.color}
                                         onClick={() => setCaseFinish(opt.color)}
-                                        className="group relative flex flex-col items-center gap-2.5 min-w-[70px]"
+                                        className="group relative flex flex-col items-center gap-2.5 min-w-17.5"
                                     >
                                         <div className={`relative w-12 h-12 rounded-full transition-all duration-500 ${caseFinish === opt.color
                                             ? 'scale-110 ring-2 ring-white/60 ring-offset-2 ring-offset-black/50'
@@ -283,7 +284,7 @@ export default function Configurator() {
                                                     ? `0 0 24px ${opt.color}50, inset 0 2px 0 rgba(255,255,255,0.3)`
                                                     : 'inset 0 1px 0 rgba(255,255,255,0.15)'
                                             }}>
-                                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+                                            <div className="absolute inset-0 rounded-full bg-linear-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
                                         </div>
 
                                         <div className="flex flex-col items-center gap-0.5">
@@ -303,7 +304,7 @@ export default function Configurator() {
                                     <button
                                         key={opt.color}
                                         onClick={() => setStrapColor(opt.color)}
-                                        className="group relative flex flex-col items-center gap-2.5 min-w-[70px]"
+                                        className="group relative flex flex-col items-center gap-2.5 min-w-17.5"
                                     >
                                         <div className={`relative w-12 h-12 rounded-full overflow-hidden transition-all duration-500 ${strapColor === opt.color
                                             ? 'scale-110 ring-2 ring-white/60 ring-offset-2 ring-offset-black/50'
@@ -316,7 +317,7 @@ export default function Configurator() {
                                                     : 'none'
                                             }}>
                                             <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCI+CjxyZWN0IHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgZmlsbD0iIzAwMCIvPgo8Y2lyY2xlIGN4PSI1IiBjeT0iNSIgcj0iMiIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iMC4xIi8+CjxjaXJjbGUgY3g9IjE1IiBjeT0iMTUiIHI9IjIiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuMSIvPgo8Y2lyY2xlIGN4PSIyNSIgY3k9IjI1IiByPSIyIiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjEiLz4KPGNpcmNsZSBjeD0iMzUiIGN5PSIzNSIgcj0iMiIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iMC4xIi8+CjxjaXJjbGUgY3g9IjQ1IiBjeT0iNDUiIHI9IjIiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')]" />
-                                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent" />
+                                            <div className="absolute inset-0 bg-linear-to-br from-white/10 via-transparent to-transparent" />
                                         </div>
 
                                         <div className="flex flex-col items-center gap-0.5">

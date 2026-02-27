@@ -8,7 +8,7 @@ import { useGLTF, Float, Environment, PerspectiveCamera } from '@react-three/dre
 import * as THREE from 'three'
 
 gsap.registerPlugin(ScrollTrigger)
-useGLTF.preload('/models/watch.glb')
+useGLTF.preload('/models/watch.glb', '/draco/')
 
 const CONFIGS = [
   { case: '#FFD700', strap: '#8B4513', name: 'Executive' },
@@ -17,24 +17,16 @@ const CONFIGS = [
   { case: '#2C2C2C', strap: '#D2B48C', name: 'Adventurer' },
 ]
 
-function MorphingWatch() {
-  const { scene } = useGLTF('/models/watch.glb')
-  const [configIndex, setConfigIndex] = useState(0)
+function MorphingWatch({ configIndex }: { configIndex: number }) {
+  const { scene } = useGLTF('/models/watch.glb', '/draco/')
   const groupRef = useRef<THREE.Group>(null)
-  
-  // Auto-morph through configurations
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setConfigIndex((prev) => (prev + 1) % CONFIGS.length)
-    }, 4000) // Change every 4 seconds
-    
-    return () => clearInterval(interval)
-  }, [])
+
+
 
   // Apply materials
   useEffect(() => {
     const config = CONFIGS[configIndex]
-    
+
     scene.traverse((child: any) => {
       if (child.isMesh) {
         if (!child.userData.originalMaterial) {
@@ -84,6 +76,22 @@ export default function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLDivElement>(null)
   const configNameRef = useRef<HTMLSpanElement>(null)
+  const [configIndex, setConfigIndex] = useState(0)
+
+  // Auto-morph through configurations
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setConfigIndex((prev) => (prev + 1) % CONFIGS.length)
+    }, 4000) // Change every 4 seconds
+
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    if (configNameRef.current) {
+      configNameRef.current.textContent = CONFIGS[configIndex].name
+    }
+  }, [configIndex])
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -102,7 +110,7 @@ export default function Hero() {
           trigger: sectionRef.current,
           start: 'top top',
           end: 'bottom top',
-          scrub: 1.5,
+          scrub: true,
         },
         opacity: 0.3,
         scale: 0.95,
@@ -113,39 +121,36 @@ export default function Hero() {
   }, [])
 
   return (
-    <section 
+    <section
       ref={sectionRef}
       className="relative h-screen w-full overflow-hidden bg-black"
     >
-      {/* Gradient background */}
-
-
       {/* 3D Canvas */}
-      <div className="absolute inset-0 w-full">
+      <div className="absolute inset-0 w-full overflow-hidden">
         <Canvas
-        className="w-full h-full"
+          className="w-full h-full block"
           dpr={[1, 2]}
           gl={{ antialias: true, alpha: false }}
         >
           <color attach="background" args={['#0a0a0a']} />
           <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={50} />
-          
+
           <ambientLight intensity={0.25} />
           <spotLight position={[15, 15, 10]} angle={0.2} penumbra={1} intensity={2} />
           <spotLight position={[-10, -10, -10]} angle={0.25} penumbra={1} intensity={0.8} color="#4a6fa5" />
-          
+
           <Environment preset="city" resolution={256} />
-          
+
           <Suspense fallback={null}>
-            <MorphingWatch />
+            <MorphingWatch configIndex={configIndex} />
           </Suspense>
         </Canvas>
       </div>
 
       {/* Content */}
-      <div 
+      <div
         ref={titleRef}
-        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 container-custom"
+        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 w-full overflow-hidden"
       >
         {/* Eyebrow */}
         <div className="flex items-center gap-6 mb-8">
@@ -158,7 +163,7 @@ export default function Hero() {
 
         {/* Main title */}
         <h1
-          className="text-[14vw] md:text-[12vw] lg:text-[10vw] leading-none tracking-tighter font-light text-center"
+          className="text-[14vw] md:text-[12vw] lg:text-[10vw] leading-none tracking-tighter font-light text-center w-full max-w-[100vw] whitespace-nowrap"
           style={{ fontFamily: 'var(--font-serif)' }}
         >
           ATELIER
@@ -172,7 +177,7 @@ export default function Hero() {
         {/* Current config indicator */}
         <div className="mt-12 px-6 py-3 bg-white/5 backdrop-blur-sm rounded-full border border-white/10">
           <span className="text-xs font-mono text-white/60 uppercase tracking-wider">
-            Now showing: <span ref={configNameRef} className="text-white">{CONFIGS[0].name}</span>
+            Now showing: <span ref={configNameRef} className="text-white">{CONFIGS[configIndex].name}</span>
           </span>
         </div>
       </div>
@@ -183,8 +188,8 @@ export default function Hero() {
           Explore
         </span>
         <div className="relative w-px h-20 bg-white/5 overflow-hidden">
-          <div 
-            className="absolute top-0 left-0 w-full h-10 bg-gradient-to-b from-white/40 to-transparent"
+          <div
+            className="absolute top-0 left-0 w-full h-10 bg-linear-to-b from-white/40 to-transparent"
             style={{
               animation: 'scroll 2.5s ease-in-out infinite'
             }}

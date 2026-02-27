@@ -37,7 +37,7 @@ export default function Features() {
             trigger: feature,
             start: 'top 80%',
             end: 'top 50%',
-            scrub: 1,
+            scrub: true,
           },
           opacity: 0,
           y: 100,

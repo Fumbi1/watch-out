@@ -6,7 +6,6 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Canvas } from '@react-three/fiber'
 import { useGLTF, Float, Environment, ContactShadows } from '@react-three/drei'
-import * as THREE from 'three'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -74,7 +73,7 @@ const CONFIGURATIONS = [
 ]
 
 function ConfigWatch({ caseColor, strapColor }: { caseColor: string; strapColor: string }) {
-  const { scene } = useGLTF('/models/watch.glb')
+  const { scene } = useGLTF('/models/watch.glb', '/draco/')
   const clonedScene = scene.clone()
 
   useEffect(() => {
@@ -129,7 +128,7 @@ function ConfigCard({ config, index }: { config: typeof CONFIGURATIONS[0]; index
           trigger: cardRef.current,
           start: 'top 85%',
           end: 'top 40%',
-          scrub: 1.5,
+          scrub: true,
         },
         opacity: 0,
         y: 100,
@@ -143,17 +142,18 @@ function ConfigCard({ config, index }: { config: typeof CONFIGURATIONS[0]; index
   return (
     <div
       ref={cardRef}
-      className="group relative bg-gradient-to-b from-white/[0.03] to-white/[0.01] backdrop-blur-sm border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-all duration-500"
+      className="group relative bg-linear-to-b from-white/3 to-white/1 backdrop-blur-sm border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-all duration-500"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* 3D Watch */}
       <div 
         ref={canvasRef}
-        className="relative h-80 md:h-96 bg-gradient-to-b from-black/50 to-black/80"
+        className="relative h-80 md:h-96 bg-linear-to-b from-black/50 to-black/80"
       >
         <Canvas
           dpr={[1, 2]}
+          frameloop="demand"
           camera={{ position: [0, 0, 10], fov: 50 }}
           gl={{ antialias: true, alpha: true }}
         >
@@ -176,7 +176,7 @@ function ConfigCard({ config, index }: { config: typeof CONFIGURATIONS[0]; index
 
         {/* Hover overlay */}
         <div 
-          className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-500 ${
+          className={`absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent transition-opacity duration-500 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}
         />
@@ -253,7 +253,7 @@ function ConfigCard({ config, index }: { config: typeof CONFIGURATIONS[0]; index
 
       {/* Shine effect on hover */}
       <div 
-        className={`absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`}
+        className={`absolute inset-0 bg-linear-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`}
       />
     </div>
   )
@@ -270,7 +270,7 @@ export default function Possibilities() {
           trigger: sectionRef.current,
           start: 'top 80%',
           end: 'top 40%',
-          scrub: 1,
+          scrub: true,
         },
         opacity: 0,
         y: 60,
@@ -286,7 +286,7 @@ export default function Possibilities() {
       className="relative min-h-screen bg-black text-white py-24 md:py-32"
     >
       {/* Background elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900/20 to-black pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-b from-black via-gray-900/20 to-black pointer-events-none" />
       
       <div className="container-custom relative z-10">
         {/* Header */}
@@ -327,13 +327,13 @@ export default function Possibilities() {
           </p>
           <Link href="/editor" className="group relative bg-white text-black px-10 py-5 rounded-full font-bold text-xs uppercase tracking-[0.2em] hover:bg-white/90 transition-all duration-300 shadow-2xl shadow-white/10">
             <span className="relative z-10">Open Configurator</span>
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-0 rounded-full bg-linear-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </Link>
         </div>
       </div>
 
       {/* Ambient glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-200 h-100 bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
     </section>
   )
 }

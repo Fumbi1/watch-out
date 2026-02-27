@@ -1,81 +1,74 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
+import { gsap } from 'gsap'
 
 export default function CustomCursor() {
-  const cursorDotRef = useRef<HTMLDivElement>(null)
-  const cursorRingRef = useRef<HTMLDivElement>(null)
-  const requestRef = useRef<number>(null)
-  const positionRef = useRef({ x: 0, y: 0 })
-  const targetRef = useRef({ x: 0, y: 0 })
-  const isHoveringRef = useRef(false)
-
-  const animate = useCallback(() => {
-    if (!cursorDotRef.current || !cursorRingRef.current) return
-
-    // Smooth lerp animation
-    positionRef.current.x += (targetRef.current.x - positionRef.current.x) * 0.15
-    positionRef.current.y += (targetRef.current.y - positionRef.current.y) * 0.15
-
-    const { x, y } = positionRef.current
-
-    // Use transform3d for GPU acceleration
-    cursorDotRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`
-    cursorRingRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${isHoveringRef.current ? 1.5 : 1})`
-
-    requestRef.current = requestAnimationFrame(animate)
-  }, [])
+  const cursorRef = useRef<HTMLDivElement>(null)
+  const ringRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      targetRef.current = { x: e.clientX, y: e.clientY }
-    }
-
-    const handleMouseEnter = () => {
-      isHoveringRef.current = true
-    }
-
-    const handleMouseLeave = () => {
-      isHoveringRef.current = false
-    }
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true })
-
-    // Add hover listeners to interactive elements
-    const interactiveElements = document.querySelectorAll('button, a, [role="button"]')
-    interactiveElements.forEach(el => {
-      el.addEventListener('mouseenter', handleMouseEnter)
-      el.addEventListener('mouseleave', handleMouseLeave)
+    // 1. Set initial state: Hidden and moved off-screen to prevent layout push
+    gsap.set([cursorRef.current, ringRef.current], { 
+      xPercent: -50, 
+      yPercent: -50,
+      opacity: 0 
     })
 
-    requestRef.current = requestAnimationFrame(animate)
+    // 2. Optimized setters (much faster than manual style strings)
+    const xDot = gsap.quickSetter(cursorRef.current, "x", "px")
+    const yDot = gsap.quickSetter(cursorRef.current, "y", "px")
+    const xRing = gsap.quickSetter(ringRef.current, "x", "px")
+    const yRing = gsap.quickSetter(ringRef.current, "y", "px")
+
+    const handleMouseMove = (e: MouseEvent) => {
+      // Show cursor on first movement
+      gsap.to([cursorRef.current, ringRef.current], { opacity: 1, duration: 0.3 })
+
+      // Move Dot instantly (or very fast)
+      xDot(e.clientX)
+      yDot(e.clientY)
+
+      // Move Ring with a slight delay/smoothness using GSAP's internal lag smoothing
+      gsap.to({}, {
+        duration: 0.15,
+        onUpdate: () => {
+          xRing(e.clientX)
+          yRing(e.clientY)
+        }
+      })
+    }
+
+    const handleHover = () => gsap.to(ringRef.current, { scale: 1.5, duration: 0.3 })
+    const handleUnhover = () => gsap.to(ringRef.current, { scale: 1, duration: 0.3 })
+
+    window.addEventListener('mousemove', handleMouseMove)
+
+    const interactives = document.querySelectorAll('button, a, [role="button"]')
+    interactives.forEach(el => {
+      el.addEventListener('mouseenter', handleHover)
+      el.addEventListener('mouseleave', handleUnhover)
+    })
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
-      interactiveElements.forEach(el => {
-        el.removeEventListener('mouseenter', handleMouseEnter)
-        el.removeEventListener('mouseleave', handleMouseLeave)
+      interactives.forEach(el => {
+        el.removeEventListener('mouseenter', handleHover)
+        el.removeEventListener('mouseleave', handleUnhover)
       })
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current)
-      }
     }
-  }, [animate])
+  }, [])
 
   return (
-    <>
-      {/* Dot */}
+    <div className="pointer-events-none fixed inset-0 w-100vw z-9999 overflow-hidden">
       <div
-        ref={cursorDotRef}
-        className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[9999] -translate-x-1/2 -translate-y-1/2 mix-blend-difference"
-        style={{ willChange: 'transform' }}
+        ref={cursorRef}
+        className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full mix-blend-difference"
       />
-      {/* Ring */}
       <div
-        ref={cursorRingRef}
-        className="fixed top-0 left-0 w-10 h-10 border border-white/30 rounded-full pointer-events-none z-[9998] -translate-x-1/2 -translate-y-1/2 mix-blend-difference transition-transform duration-200"
-        style={{ willChange: 'transform' }}
+        ref={ringRef}
+        className="fixed top-0 left-0 w-10 h-10 border border-white/30 rounded-full mix-blend-difference"
       />
-    </>
+    </div>
   )
 }

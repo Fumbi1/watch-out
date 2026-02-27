@@ -8,7 +8,7 @@ export default function Footer() {
         className="absolute bottom-0 left-0 right-0 text-center pointer-events-none select-none leading-none"
         style={{ fontFamily: 'var(--font-serif)' }}
       >
-        <span className="text-[20vw] font-light text-white/[0.02] tracking-tighter">
+        <span className="text-[20vw] font-light text-white/2 tracking-tighter">
           ATELIER
         </span>
       </div>

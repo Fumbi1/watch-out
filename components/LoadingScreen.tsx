@@ -40,7 +40,7 @@ export default function Loading() {
         </div>
 
         {/* Progress Bar Line */}
-        <div className="w-64 h-[1px] bg-white/10 mt-8 relative overflow-hidden">
+        <div className="w-64 h-px bg-white/10 mt-8 relative overflow-hidden">
           <div
             className="absolute top-0 left-0 h-full bg-white transition-all duration-300 ease-out"
             style={{ width: `${progress}%` }}

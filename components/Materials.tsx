@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
+
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -85,6 +86,7 @@ const MATERIALS = {
   ],
 }
 
+
 function MaterialCard({ 
   material, 
   type 
@@ -101,7 +103,7 @@ function MaterialCard({
         trigger: cardRef.current,
         start: 'top 85%',
         end: 'top 50%',
-        scrub: 1,
+        scrub: true,
       },
       opacity: 0,
       x: type === 'case' ? -60 : 60,
@@ -124,7 +126,7 @@ function MaterialCard({
             style={{ backgroundColor: material.color }}
           >
             {/* Shine effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-br from-white/30 via-transparent to-transparent" />
             {/* Subtle texture overlay */}
             <div className="absolute inset-0 opacity-20 mix-blend-overlay"
                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E")` }}
@@ -201,17 +203,18 @@ export default function Materials() {
         trigger: sectionRef.current,
         start: 'top 80%',
         end: 'top 40%',
-        scrub: 1,
+        scrub: true,
       },
       opacity: 0,
       y: 80,
     })
   }, [])
 
+
   return (
     <section 
       ref={sectionRef}
-      className="relative min-h-screen bg-gradient-to-b from-black via-gray-900/10 to-black text-white py-24 md:py-32"
+      className="relative min-h-screen bg-linear-to-b from-black via-gray-900/10 to-black text-white py-24 md:py-32"
     >
       <div className="container-custom relative z-10">
         
@@ -295,7 +298,7 @@ export default function Materials() {
       </div>
 
       {/* Ambient light */}
-      <div className="absolute top-1/2 left-1/4 w-[600px] h-[600px] bg-purple-500/5 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/4 w-150 h-150 bg-purple-500/5 blur-[150px] rounded-full pointer-events-none" />
     </section>
   )
 }
