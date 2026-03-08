@@ -1,8 +1,9 @@
 'use client'
 
+import * as THREE from 'three'
 import { Canvas } from '@react-three/fiber'
 import { useGLTF, OrbitControls, Environment, ContactShadows, Float } from '@react-three/drei'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import CameraController from '../components/CameraController'
 
 
@@ -32,46 +33,88 @@ useGLTF.preload('/models/watch-compressed.glb', '/draco/'); // I am preloading t
 
 function Watch({ strapColor, caseFinish }: { strapColor: string; caseFinish: string }) {
     const { scene } = useGLTF('/models/watch-compressed.glb', '/draco/')
+    const watch = useMemo(() => scene.clone(), [scene])
 
+    const caseMeshes = useRef<THREE.Mesh[]>([])
+    const strapMeshes = useRef<THREE.Mesh[]>([])
+    const metalMeshes = useRef<THREE.Mesh[]>([])
+    const blackMeshes = useRef<THREE.Mesh[]>([])
+
+    // Cache meshes once
     useEffect(() => {
-        scene.traverse((child: any) => {
-            if (child.isMesh) {
-                if (child.material.name === 'Green') {
-                    child.material = child.material.clone()
-                    child.material.color.set(caseFinish)
-                    child.material.metalness = caseFinish !== '#2C2C2C' ? 1.0 : 0.6
-                    child.material.roughness = caseFinish !== '#2C2C2C' ? 0.1 : 0.4
-                    child.material.envMapIntensity = 1.8
-                }
+        watch.traverse((child: any) => {
+            if (!child.isMesh) return
 
-                if (child.material.name === 'MetalGrey') {
-                    child.material = child.material.clone()
-                    child.material.color.set('#C0C0C0')
-                    child.material.metalness = 1.0
-                    child.material.roughness = 0.05
-                    child.material.envMapIntensity = 1.5
-                }
+            child.material = child.material.clone()
 
-                if (child.material.name === 'DarkPins.001') {
-                    child.material = child.material.clone()
-                    child.material.color.set(strapColor)
-                    child.material.metalness = 0.1
-                    child.material.roughness = 0.85
-                }
+            if (child.material.name === 'Green') {
+                caseMeshes.current.push(child)
+            }
 
-                if (child.material.name === 'Black') {
-                    child.material = child.material.clone()
-                    child.material.color.set('#050505')
-                    child.material.metalness = 0.9
-                    child.material.roughness = 0.15
-                }
+            if (child.material.name === 'DarkPins.001') {
+                strapMeshes.current.push(child)
+            }
+
+            if (child.material.name === 'MetalGrey') {
+                metalMeshes.current.push(child)
+            }
+
+            if (child.material.name === 'Black') {
+                blackMeshes.current.push(child)
             }
         })
-    }, [scene, strapColor, caseFinish])
+    }, [watch])
+
+    // Update case color
+    useEffect(() => {
+        caseMeshes.current.forEach((mesh) => {
+            const mat = mesh.material as THREE.MeshStandardMaterial
+            // assign a new Color instance instead of invoking `set` on the
+            // existing Color object (avoids the “Color has no call signatures”
+            // complaint)
+            mat.color = new THREE.Color(caseFinish)
+            mat.metalness = caseFinish !== '#2C2C2C' ? 1 : 0.6
+            mat.roughness = caseFinish !== '#2C2C2C' ? 0.1 : 0.4
+            mat.envMapIntensity = 1.8
+        })
+    }, [caseFinish])
+
+    // Update strap
+    useEffect(() => {
+        strapMeshes.current.forEach((mesh) => {
+            const mat = mesh.material as THREE.MeshStandardMaterial
+            mat.color = new THREE.Color(strapColor)
+            mat.metalness = 0.1
+            mat.roughness = 0.85
+        })
+    }, [strapColor])
+
+    // Static metals
+    useEffect(() => {
+        metalMeshes.current.forEach((mesh) => {
+            const mat = mesh.material as THREE.MeshStandardMaterial;
+            mat.color.set('#C0C0C0');
+            mat.metalness = 1;
+            mat.roughness = 0.05;
+            mat.envMapIntensity = 1.5;
+        });
+
+        blackMeshes.current.forEach((mesh) => {
+            const mat = mesh.material as THREE.MeshStandardMaterial;
+            mat.color.set('#050505');
+            mat.metalness = 0.9;
+            mat.roughness = 0.15;
+        });
+    }, [])
 
     return (
-        <Float speed={1.5} rotationIntensity={0.15} floatIntensity={0.3} floatingRange={[-0.05, 0.05]}>
-            <primitive object={scene} scale={5} />
+        <Float
+            speed={1.4}
+            rotationIntensity={0.12}
+            floatIntensity={0.25}
+            floatingRange={[-0.05, 0.05]}
+        >
+            <primitive object={watch} scale={4.8} />
         </Float>
     )
 }
@@ -132,7 +175,7 @@ export default function Configurator() {
                     alpha: false,
                     powerPreference: "high-performance"
                 }}
-                dpr={[1, 2]}
+                dpr={[1, 1.5]}
             >
                 <color attach="background" args={['#050505']} />
 
@@ -153,7 +196,7 @@ export default function Configurator() {
                 />
                 <directionalLight position={[0, 10, 0]} intensity={0.5} />
 
-                <Environment preset="apartment" resolution={256} />
+                <Environment preset="apartment" resolution={128} />
 
                 <CameraController target={cameraTarget} />
                 <Watch strapColor={strapColor} caseFinish={caseFinish} />
@@ -167,6 +210,7 @@ export default function Configurator() {
                 />
 
                 <OrbitControls
+                    makeDefault
                     enablePan={false}
                     enableDamping
                     dampingFactor={0.05}
@@ -193,7 +237,7 @@ export default function Configurator() {
                     </div>
 
                     {/* Product Info */}
-                    <div className="hidden lg:flex flex-col items-end gap-3 text-xs font-mono">
+                    <div className="hidden lg:flex flex-col items-center gap-3 text-xs font-mono w-[30%]">
                         <div className="flex gap-6">
                             <div className="flex flex-col items-end">
                                 <span className="text-white/25 text-[9px] tracking-wider mb-1">CASE</span>
@@ -212,7 +256,7 @@ export default function Configurator() {
                 </header>
 
                 {/* Vertical View Strip (Right Side) */}
-                <div className="absolute right-6 md:right-12 top-1/2 -translate-y-1/2 flex flex-col gap-6 pointer-events-auto">
+                <div className="absolute right-6 md:right-20 2xl:right-40 top-1/2 -translate-y-1/2 flex flex-col gap-6 pointer-events-auto">
                     {CAMERA_PRESETS.map((view) => (
                         <button
                             key={view.key}
@@ -249,12 +293,12 @@ export default function Configurator() {
                         <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 p-5">
 
                             {/* Tab Toggle */}
-                            <div className="flex bg-white/5 rounded-full p-1.5 border border-white/5">
+                            <div className="flex gap-4 bg-white/5 rounded-full p-1.5 border border-white/5">
                                 {(['case', 'strap'] as const).map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
-                                        className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-300 ${activeTab === tab
+                                        className={`px-12 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-300 ${activeTab === tab
                                             ? 'bg-white text-black shadow-lg'
                                             : 'text-white/30 hover:text-white/60'
                                             }`}

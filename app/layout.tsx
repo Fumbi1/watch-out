@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <body
-        className={`${inter.variable} ${playfair.variable} ${dmMono.variable} bg-black text-white antialiased overflow-x-hidden`}
+        className={`${inter.variable} ${playfair.variable} ${dmMono.variable} bg-black text-white antialiased`}
         suppressHydrationWarning={true}
       >
         {children}

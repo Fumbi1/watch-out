@@ -8,7 +8,8 @@ import { useGLTF, Float, Environment, PerspectiveCamera } from '@react-three/dre
 import * as THREE from 'three'
 
 gsap.registerPlugin(ScrollTrigger)
-useGLTF.preload('/models/watch.glb', '/draco/')
+
+useGLTF.preload('/models/watch-compressed.glb', '/draco/')
 
 const CONFIGS = [
   { case: '#FFD700', strap: '#8B4513', name: 'Executive' },
@@ -18,55 +19,61 @@ const CONFIGS = [
 ]
 
 function MorphingWatch({ configIndex }: { configIndex: number }) {
-  const { scene } = useGLTF('/models/watch.glb', '/draco/')
+  const { scene } = useGLTF('/models/watch-compressed.glb', '/draco/')
   const groupRef = useRef<THREE.Group>(null)
 
+  const meshes = useRef<THREE.Mesh[]>([])
 
+  // Cache meshes once
+  useEffect(() => {
+    scene.traverse((child: any) => {
+      if (child.isMesh) meshes.current.push(child)
+    })
+  }, [scene])
 
-  // Apply materials
+  // Animate material colors
   useEffect(() => {
     const config = CONFIGS[configIndex]
+    const caseColor = new THREE.Color(config.case)
+    const strapColor = new THREE.Color(config.strap)
 
-    scene.traverse((child: any) => {
-      if (child.isMesh) {
-        if (!child.userData.originalMaterial) {
-          child.userData.originalMaterial = child.material.clone()
-        }
+    meshes.current.forEach((mesh) => {
+      const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material
+      
+      if (material.name === 'Green') {
+        gsap.to((material as THREE.MeshStandardMaterial).color, {
+          r: caseColor.r,
+          g: caseColor.g,
+          b: caseColor.b,
+          duration: 1.4,
+          ease: 'power2.inOut',
+        })
+      }
 
-        if (child.material.name === 'Green') {
-          gsap.to(child.material.color, {
-            r: new THREE.Color(config.case).r,
-            g: new THREE.Color(config.case).g,
-            b: new THREE.Color(config.case).b,
-            duration: 1.5,
-            ease: 'power2.inOut'
-          })
-        }
-
-        if (child.material.name === 'DarkPins.001') {
-          gsap.to(child.material.color, {
-            r: new THREE.Color(config.strap).r,
-            g: new THREE.Color(config.strap).g,
-            b: new THREE.Color(config.strap).b,
-            duration: 1.5,
-            ease: 'power2.inOut'
-          })
-        }
+      if (material.name === 'DarkPins.001') {
+        gsap.to((material as THREE.MeshStandardMaterial).color, {
+          r: strapColor.r,
+          g: strapColor.g,
+          b: strapColor.b,
+          duration: 1.4,
+          ease: 'power2.inOut',
+        })
       }
     })
-  }, [configIndex, scene])
+  }, [configIndex])
 
-  // Gentle rotation
+  // Subtle rotation
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.15) * 0.15
+      groupRef.current.rotation.y =
+        Math.sin(state.clock.elapsedTime * 0.15) * 0.15
     }
   })
 
   return (
     <group ref={groupRef}>
-      <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.2}>
-        <primitive object={scene} scale={6} />
+      <Float speed={1.2} rotationIntensity={0.1} floatIntensity={0.25}>
+        <primitive object={scene} scale={2.6} />
       </Float>
     </group>
   )
@@ -75,45 +82,39 @@ function MorphingWatch({ configIndex }: { configIndex: number }) {
 export default function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLDivElement>(null)
-  const configNameRef = useRef<HTMLSpanElement>(null)
+
   const [configIndex, setConfigIndex] = useState(0)
 
-  // Auto-morph through configurations
+  // Auto morph configs
   useEffect(() => {
     const interval = setInterval(() => {
       setConfigIndex((prev) => (prev + 1) % CONFIGS.length)
-    }, 4000) // Change every 4 seconds
+    }, 4000)
 
     return () => clearInterval(interval)
   }, [])
 
-  useEffect(() => {
-    if (configNameRef.current) {
-      configNameRef.current.textContent = CONFIGS[configIndex].name
-    }
-  }, [configIndex])
-
+  // Animations
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Initial fade in
       gsap.from(titleRef.current, {
         opacity: 0,
-        y: 80,
-        duration: 1.8,
-        delay: 0.5,
-        ease: 'power4.out'
+        y: 70,
+        duration: 1.6,
+        delay: 0.4,
+        ease: 'power3.out',
       })
 
-      // Parallax on scroll
       gsap.to(sectionRef.current, {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
           end: 'bottom top',
-          scrub: true,
+          scrub: 1,
+          invalidateOnRefresh: false,
         },
-        opacity: 0.3,
-        scale: 0.95,
+        opacity: 0.35,
+        scale: 0.96,
       })
     }, sectionRef)
 
@@ -123,23 +124,40 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative h-screen w-full overflow-hidden bg-black"
+      className="relative h-screen w-full overflow-hidden bg-black will-change-transform"
     >
+      {/* Depth gradient */}
+      <div className="absolute inset-0 bg-linear-to-b from-black via-black to-zinc-900" />
+
       {/* 3D Canvas */}
-      <div className="absolute inset-0 w-full overflow-hidden">
+      <div className="absolute inset-0">
         <Canvas
-          className="w-full h-full block"
-          dpr={[1, 2]}
-          gl={{ antialias: true, alpha: false }}
+          className="w-full h-full"
+          dpr={[1, 1.5]}
+          gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
         >
           <color attach="background" args={['#0a0a0a']} />
-          <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={50} />
 
-          <ambientLight intensity={0.25} />
-          <spotLight position={[15, 15, 10]} angle={0.2} penumbra={1} intensity={2} />
-          <spotLight position={[-10, -10, -10]} angle={0.25} penumbra={1} intensity={0.8} color="#4a6fa5" />
+          <PerspectiveCamera makeDefault position={[0, 0, 12]} fov={45} />
 
-          <Environment preset="city" resolution={256} />
+          <ambientLight intensity={0.3} />
+
+          <spotLight
+            position={[12, 12, 10]}
+            angle={0.25}
+            penumbra={1}
+            intensity={2}
+          />
+
+          <spotLight
+            position={[-10, -10, -10]}
+            angle={0.25}
+            penumbra={1}
+            intensity={0.7}
+            color="#4a6fa5"
+          />
+
+          <Environment preset="studio" resolution={64} />
 
           <Suspense fallback={null}>
             <MorphingWatch configIndex={configIndex} />
@@ -150,48 +168,55 @@ export default function Hero() {
       {/* Content */}
       <div
         ref={titleRef}
-        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 w-full overflow-hidden"
+        className="absolute inset-0 flex flex-col items-center justify-center text-center z-10 pointer-events-none"
       >
         {/* Eyebrow */}
-        <div className="flex items-center gap-6 mb-8">
+        <div className="flex items-center gap-6 mb-10">
           <div className="w-16 h-px bg-white/10" />
+
           <span className="text-[10px] tracking-[0.4em] text-white/30 uppercase font-mono">
             One Watch · Infinite You
           </span>
+
           <div className="w-16 h-px bg-white/10" />
         </div>
 
-        {/* Main title */}
+        {/* Title */}
         <h1
-          className="text-[14vw] md:text-[12vw] lg:text-[10vw] leading-none tracking-tighter font-light text-center w-full max-w-[100vw] whitespace-nowrap"
-          style={{ fontFamily: 'var(--font-serif)' }}
+          className="text-[14vw] md:text-[11vw] lg:text-[9vw] leading-none tracking-tight font-light"
+          style={{
+            fontFamily: 'var(--font-serif)',
+            textShadow: '0 20px 60px rgba(255,255,255,0.15)',
+          }}
         >
           ATELIER
         </h1>
 
         {/* Subtitle */}
-        <p className="text-base md:text-lg text-white/40 font-light mt-6 tracking-wide">
+        <p className="text-base md:text-lg text-white/50 font-light mt-8 tracking-[0.15em]">
           Precision Engineering · Swiss Made
         </p>
 
-        {/* Current config indicator */}
-        <div className="mt-12 px-6 py-3 bg-white/5 backdrop-blur-sm rounded-full border border-white/10">
-          <span className="text-xs font-mono text-white/60 uppercase tracking-wider">
-            Now showing: <span ref={configNameRef} className="text-white">{CONFIGS[configIndex].name}</span>
+        {/* Config indicator */}
+        <div className="mt-12 px-6 py-2 text-xs font-mono uppercase text-white/70 bg-white/5 backdrop-blur-md rounded-full border border-white/10">
+          Now showing:{' '}
+          <span className="text-white">
+            {CONFIGS[configIndex].name}
           </span>
         </div>
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-4 pointer-events-none">
-        <span className="text-[9px] font-mono tracking-[0.4em] text-white/20 uppercase">
+      <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-10 pointer-events-none">
+        <span className="text-[9px] font-mono tracking-[0.45em] text-white/20 uppercase">
           Explore
         </span>
+
         <div className="relative w-px h-20 bg-white/5 overflow-hidden">
           <div
-            className="absolute top-0 left-0 w-full h-10 bg-linear-to-b from-white/40 to-transparent"
+            className="absolute top-0 w-full h-10 bg-linear-to-b from-white/40 to-transparent"
             style={{
-              animation: 'scroll 2.5s ease-in-out infinite'
+              animation: 'scroll 2.5s ease-in-out infinite',
             }}
           />
         </div>
@@ -199,9 +224,17 @@ export default function Hero() {
 
       <style jsx>{`
         @keyframes scroll {
-          0%, 20% { transform: translateY(-100%); opacity: 0; }
-          50% { opacity: 1; }
-          80%, 100% { transform: translateY(200%); opacity: 0; }
+          0%, 20% {
+            transform: translateY(-100%);
+            opacity: 0;
+          }
+          50% {
+            opacity: 1;
+          }
+          80%, 100% {
+            transform: translateY(200%);
+            opacity: 0;
+          }
         }
       `}</style>
     </section>

@@ -1,15 +1,27 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
-// import CustomCursor from '../components/CustomCursor'
-import Hero from '../components/Hero'
-import Possibilities from '../components/Possibilities'
-import Materials from '../components/Materials'
-import ComparisonSlider from '@/components/ComparisonSlider'
-import ConfiguratorCTA from '@/components/ConfiguratorCTA'
+import dynamic from 'next/dynamic'
+
+// Lazy load components for better performance
+const Hero = dynamic(() => import('../components/Hero'), {
+  loading: () => <div className="h-screen bg-black" />
+})
+const Possibilities = dynamic(() => import('../components/Possibilities'), {
+  loading: () => <div className="min-h-screen bg-black" />
+})
+const Materials = dynamic(() => import('../components/Materials'), {
+  loading: () => <div className="min-h-screen bg-black" />
+})
+const ComparisonSlider = dynamic(() => import('@/components/ComparisonSlider'), {
+  loading: () => <div className="min-h-screen bg-black" />
+})
+const ConfiguratorCTA = dynamic(() => import('@/components/ConfiguratorCTA'), {
+  loading: () => <div className="min-h-screen bg-black" />
+})
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -19,7 +31,6 @@ export default function LandingPage() {
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      // Add these to prevent horizontal shifting
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       syncTouch: false,
@@ -36,7 +47,6 @@ export default function LandingPage() {
 
     rafId = requestAnimationFrame(raf)
 
-    // CRITICAL: Refresh ScrollTrigger when Lenis updates
     lenis.on('scroll', ScrollTrigger.update)
 
     gsap.ticker.add((time) => {
@@ -53,14 +63,26 @@ export default function LandingPage() {
   }, [])
 
   return (
-    // Remove overflow-x-hidden here; let Lenis/CSS handle the root
     <main className="relative w-full bg-black min-h-screen overflow-x-hidden">
-      {/* <CustomCursor /> */}
-      <Hero />
-      <Possibilities />
-      <Materials />
-      <ComparisonSlider />
-      <ConfiguratorCTA />
+      <Suspense fallback={<div className="h-screen bg-black" />}>
+        <Hero />
+      </Suspense>
+      
+      <Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <Possibilities />
+      </Suspense>
+      
+      <Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <Materials />
+      </Suspense>
+      
+      <Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <ComparisonSlider />
+      </Suspense>
+      
+      <Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <ConfiguratorCTA />
+      </Suspense>
     </main>
   )
 }

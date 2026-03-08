@@ -52,7 +52,7 @@ export default function Loading() {
 
       {/* Top Left: Brand */}
       <div className="absolute top-8 left-8 md:top-12 md:left-12">
-        <h1 className="text-xl font-serif tracking-tight">LUXE.</h1>
+        <h1 className="text-xl font-serif tracking-tight">ATELIER</h1>
       </div>
 
       {/* Top Right: Status */}
